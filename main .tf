@@ -14,7 +14,7 @@ resource "helm_release" "elastic-system" {
 
 
 resource "helm_release" "assignment" {
-  name      = "assign-chart_latest"
+  name      = "assign-chart-latest"
   chart     = "./KandE"
   namespace = "default"
 
