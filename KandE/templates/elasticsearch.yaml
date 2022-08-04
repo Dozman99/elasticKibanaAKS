@@ -7,7 +7,7 @@ spec:
   http: 
     service: 
       spec: 
-        type: ClusterIP #Adds a Internal IP 
+        type: LoadBalancer #Adds a External IP 
   nodeSets: 
   - name: default 
     count: 1 
