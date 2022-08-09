@@ -23,17 +23,17 @@ resource "helm_release" "assignment" {
 }
 
 
-# resource "helm_release" "fluent-bit" {
-#   name       = "fluent-bit"
-#   repository = "https://fluent.github.io/helm-charts"
-#   chart      = "fluent-bit"
-#   namespace  = "default"
-#   depends_on = [
-#     helm_release.assignment, helm_release.elastic-system
-#   ]
+resource "helm_release" "fluent-bit" {
+  name       = "fluent-bit"
+  repository = "https://fluent.github.io/helm-charts"
+  chart      = "fluent-bit"
+  namespace  = "default"
+  depends_on = [
+    helm_release.assignment, helm_release.elastic-system
+  ]
 
-#   values = [
-#     "${file("./overideFluentbit.yaml")}"
-#   ]
-# }
+  values = [
+    "${file("./overideFluentbit.yaml")}"
+  ]
+}
 

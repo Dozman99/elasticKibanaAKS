@@ -1,3 +1,18 @@
+# @format
+
+# I need to know how to automatically include HTTP_Passwd and HTTP_User elastic
+config:
+  service: |
+    [SERVICE]
+        Daemon off
+        Flush {{ .Values.flush }}
+        Log_Level debug
+        Parsers_File parsers.conf
+        Parsers_File custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port {{ .Values.metricsPort }}
+        Health_Check on
 
   ## https://docs.fluentbit.io/manual/pipeline/inputs
   inputs: |
@@ -15,34 +30,49 @@
         Systemd_Filter _SYSTEMD_UNIT=kubelet.service
         Read_From_Tail On
 
-    [INPUT]
-        Name tail
-        Path /var/log/containers/*.log
-        multiline.parser docker, cri
-        Tag kube.*
-        Mem_Buf_Limit 5MB
-        Skip_Long_Lines On
-
-
+  ## https://docs.fluentbit.io/manual/pipeline/filters
+  filters: |
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
 
   ## https://docs.fluentbit.io/manual/pipeline/outputs
-  # my-svc.my-namespace.svc.cluster.local
   outputs: |
     [OUTPUT]
         Name es
-        Match kube.*
-        Host quickstart-es-internal-http.default.cluster.local
+        Match *
+        Host quickstart-es-internal-http
         Logstash_Format On
-        Retry_Limit False
         Port 9200
+        HTTP_Passwd 9lJ2g0p1ktS33qZ62iz0LZ2B
         HTTP_User elastic
-        
-
+        Retry_Limit False
+        Trace_Output on
+        Trace_Error on
+        Current_Time_Index on
+        tls on
+        tls.debug 4
+        tls.verify Off
+        Suppress_Type_Name On
 
     [OUTPUT]
-        Name es
+        Name stdout
         Match host.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
+        Format json
+        Json_date_key timestamp
+        Json_date_format iso860
+
+
+
+  ## https://docs.fluentbit.io/manual/pipeline/parsers
+  customParsers: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
